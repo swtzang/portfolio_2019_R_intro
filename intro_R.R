@@ -154,9 +154,76 @@ firm3.mon1<-returns(firm3, period = "month")
 head(firm3.mon1)
 firm3.mon1
 firm3.day<-returns(firm3)
+head(firm3.day)
 head(merge(firm3, firm3.day))
-head(100* cumprod(1+firm3.ret))
+head(100* cumprod(1+firm3.day))
 firm3.p.ret<-firm3.day %>% merge(firm3) 
+head(firm3.p.ret)
+# 
+#============================================================
+# Plot in R
+#-------------------------------------------------------------
+# plot zoo object
+plot(firm3.day)
+# plot xts object
+firm3.day %>% as.xts %>% 
+              plot
+axis(1, index(firm3.day), format(index(firm3.day), "%Y/%m"))
+# 
+firm3.day.xts <-as.xts(firm3.day)
+plot.xts(firm3.day.xts, auto.legend = TRUE)
+#axis(side=1, at=yahoo2$date[ at ], labels=format(yahoo2$date[at], '%b-%y'))
+#plot.xts(etf4_mon_ret, auto.legend = TRUE)
+
+# plot the scatterplot of AMZN and MSFT
+# convert xts into df 
+firm3_ret.df1<-fortify(firm3_ret.df)
+plot(firm3_ret.df1$`0050`, etf4_returns.df1$`00646`, pch=20,
+     col = 'darkred', main = '0050 vs. 00646 monthly returns',
+     xlab = '0050', ylab = '00646 S&P500')
+#-----------------------------------------------------------
+#install.packages("tidyverse")
+library(tidyverse)
+library(ggplot2)
+# convert xts into data frame which can be used by ggplot
+#etf4_returns.df<-fortify(etf4_returns_xts)
+firm3_ret.df<-fortify(firm3.day, melt=TRUE)
+head(firm3_ret.df)
+#
+p<-ggplot(firm3_ret.df, aes(x = Index, y = Value))+
+  geom_line(aes(color = Series), size = 0.5)
+p
+p + scale_x_date(date_labels = "%Y/%m")
+
+# histogram distribution
+q<-firm3_ret.df %>%
+  ggplot(aes(x =Value, fill = Series)) +
+  geom_histogram(alpha = 0.45, binwidth = .005) +
+  ggtitle("Daily Returns")
+q
+q + facet_wrap(~Series)+ theme_update(plot.title = element_text(hjust = 0.5))
+
+
+# line distribution
+firm3_ret.df %>%
+  ggplot(aes(x = Value, colour = Series)) +
+  geom_density(alpha = 1) +
+  ggtitle("Daily Returns Density from 2010") +
+  xlab("daily returns") +
+  ylab("distribution") +
+  theme_update(plot.title = element_text(hjust = 0.5))
+
+# Combine line and histogram together
+firm3_ret.df %>%
+  ggplot(aes(x = Value)) +
+  geom_density(aes(color = Series), alpha = 1) +
+  geom_histogram(aes(fill = Series), alpha = 0.45, binwidth = .01) +
+  guides(fill = FALSE) +
+  facet_wrap(~Series) +
+  ggtitle("Daily Returns from 2010") +
+  xlab("daily returns") +
+  ylab("distribution") +
+  theme_update(plot.title = element_text(hjust = 0.5))
 
 
 
