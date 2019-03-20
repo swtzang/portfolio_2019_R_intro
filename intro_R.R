@@ -29,7 +29,7 @@ class(AMZN.ad)
 # write function to gather adjusted prices together
 firm3<-merge(Ad(AMZN), Ad(GOOG), Ad(MSFT))
 head(firm3)
-colnames(firm3)<-c("AMZN", "GOOG", "MSFG")
+colnames(firm3)<-c("AMZN", "GOOG", "MSFT")
 head(firm3)
 #------------------------------------------
 # Import data from .txt file
@@ -42,7 +42,7 @@ str(etf4)
 head(etf4)
 write.csv(etf4, "etf4.csv")
 #
-installed.packages('readr')
+#installed.packages('readr')
 library(readr)
 etf4_csv<-read_csv("etf4.csv")
 etf4_csv
@@ -143,28 +143,81 @@ head(na.omit(Return.calculate(firm3)))
 firm3.mon<-firm3 %>% to.monthly(indexAt = "lastof", OHLC=FALSE) %>% 
                  Return.calculate()
 head(firm3.mon)
-# Main problem: the return series are shown in calendar dates, 
-# not in trading dates
-# Therefore, we use package PMwR instead!
-#install.packages("PMwR")
+# We can also use package PMwR instead!
+# install.packages("PMwR")
 library(PMwR)
-head(returns(firm3))
+firm3.day<-returns(firm3, pad=0)
+head(firm3.day)
 firm3.mon1<-returns(firm3, period = "month")
 #options(digits = 5)
 head(firm3.mon1)
 firm3.mon1
-firm3.day<-returns(firm3)
-head(firm3.day)
 head(merge(firm3, firm3.day))
-head(100* cumprod(1+firm3.day))
+cum.ret<-cumprod(1+firm3.day)
+head(cum.ret)
+tail(cum.ret)
+Return.cumulative(firm3.day)
+
+# merge daily return and prices 
 firm3.p.ret<-firm3.day %>% merge(firm3) 
+colnames(firm3.p.ret)<-c("AMZN_ret", "GOOG_ret", "MSFT_ret", 
+                         "AMZN_price", "GOOG_price", "MSFT_price")
 head(firm3.p.ret)
-# 
 #============================================================
 # Plot in R
+# Reference:
+# https://blog.revolutionanalytics.com/2014/01/quantitative-finance-applications-in-r-plotting-xts-time-series.html
 #-------------------------------------------------------------
-# plot zoo object
+# Using plot(.) in the zoo package
+plot(cum.ret)
+# Set a color scheme:
+tsRainbow <- rainbow(ncol(cum.ret))
+# Plot the overlayed series
+plot(x = cum.ret, ylab = "Cumulative Return", main = "Cumulative Returns",
+     col = tsRainbow, screens = 1, lty = 1:3)
+# Set a legend in the upper left hand corner to match color to return series
+legend(x = "topleft", legend = c("AMZN", "GOOG", "MSFT"), 
+       lty = 1:3,col = tsRainbow)
+# use your own customized color set
+myColors <- c("red", "darkgreen", "goldenrod")
+plot(x = cum.ret, ylab = "Cumulative Return", main = "Cumulative Returns",
+     col = myColors, screens = 1, lty =1:3, lwd = 2)
+legend(x = "topleft", legend = c("AMZN", "GOOG", "MSFT"), 
+       lty = 1:3,col = myColors)
+#---------------------------------------------------------------
+# Using plot(.) in the xts package
+# Reference: 
+# https://timelyportfolio.blogspot.com/2012/08/plotxts-is-wonderful.html
+#----------------------------------------------------------------
+cum.ret.xts<-as.xts(cum.ret)
+cum.ret.xts
+plot(cum.ret.xts, xlab = "Time", ylab = "Cumulative Return",
+     main = "Cumulative Returns", ylim = c(0.0, 16), 
+     major.ticks= "years",
+     minor.ticks = FALSE, col = myColors,
+     legend = c("AMZN", "GOOG", "MSFT"))
+# not working by adding legend
+plot.xts(cum.ret.xts, lwd = 2, legend.loc = "topleft", auto.legend=TRUE,
+         main="Cumulative returns")
+#
+plot.xts(cum.ret.xts, 
+         lwd = 2, legend.loc = "topleft", auto.legend=TRUE,
+         main="Cumulative returns")
+#---------------------------------------------------------------
+# plot daily returns
+class(firm3.day)
+head(firm3.day)
 plot(firm3.day)
+#
+x0 = index(firm3.day)
+y0 = coredata(firm3.day)
+plot(x0, y0[,1], type = "l")
+plot(index(firm3.day), firm3.day$AMZN, type = "l", 
+     main="Amazon daily returns", col.main="red", 
+     sub="201001-201903", col.sub="blue", 
+     xlab="date", ylab="Amazon daily returns",
+     col.lab="black", cex.lab=0.75)
+
 # plot xts object
 firm3.day %>% as.xts %>% 
               plot
@@ -177,6 +230,7 @@ plot.xts(firm3.day.xts, auto.legend = TRUE)
 
 # plot the scatterplot of AMZN and MSFT
 # convert xts into df 
+library(ggplot2)
 firm3_ret.df1<-fortify(firm3_ret.df)
 plot(firm3_ret.df1$`0050`, etf4_returns.df1$`00646`, pch=20,
      col = 'darkred', main = '0050 vs. 00646 monthly returns',
