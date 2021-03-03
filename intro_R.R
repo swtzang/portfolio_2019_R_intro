@@ -190,7 +190,7 @@ legend(x = "topleft", legend = c("AMZN", "GOOG", "MSFT"),
 # https://timelyportfolio.blogspot.com/2012/08/plotxts-is-wonderful.html
 #----------------------------------------------------------------
 cum.ret.xts<-as.xts(cum.ret)
-cum.ret.xts
+head(cum.ret.xts)
 plot(cum.ret.xts, xlab = "Time", ylab = "Cumulative Return",
      main = "Cumulative Returns", ylim = c(0.0, 16), 
      major.ticks= "years",
@@ -229,12 +229,13 @@ plot.xts(firm3.day.xts, auto.legend = TRUE)
 #plot.xts(etf4_mon_ret, auto.legend = TRUE)
 
 # plot the scatterplot of AMZN and MSFT
-# convert xts into df 
+# convert xts into df
+#install.packages(ggplot2)
 library(ggplot2)
-firm3_ret.df1<-fortify(firm3_ret.df)
-plot(firm3_ret.df1$`0050`, etf4_returns.df1$`00646`, pch=20,
-     col = 'darkred', main = '0050 vs. 00646 monthly returns',
-     xlab = '0050', ylab = '00646 S&P500')
+#firm3_ret.df1<-fortify(firm3_ret.df)
+#plot(firm3_ret.df1$`0050`, etf4_returns.df1$`00646`, pch=20,
+#     col = 'darkred', main = '0050 vs. 00646 monthly returns',
+#     xlab = '0050', ylab = '00646 S&P500')
 #-----------------------------------------------------------
 #install.packages("tidyverse")
 library(tidyverse)
