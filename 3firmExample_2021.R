@@ -256,7 +256,7 @@ i=1
 for (i in 1:length(muP))  # find the optimal portfolios for each target expected return
 {
   bvec = c(1,muP[i])  # constraint vector
-  result = solve.QP(Dmat=2*Sigma,dvec=rep(0,3),Amat=Amat,bvec=bvec,meq=2)
+  result = solve.QP(Dmat=2*Sigma, dvec=rep(0,3),Amat=Amat,bvec=bvec,meq=2)
     sdP[i] = sqrt(result$value)
     weights[i,] = result$solution
 }

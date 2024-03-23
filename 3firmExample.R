@@ -17,7 +17,7 @@ firm_data1 = read.csv('3firmExample_data3.csv')
 str(firm_data1)
 firm_data1$date
 
-install.packages("xts")
+# install.packages("xts")
 library(xts)
 date1 = as.Date(firm_data1[,1], "%Y/%m/%d")
 #convert firm_data1 into time series data: xts
