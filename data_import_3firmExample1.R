@@ -16,64 +16,76 @@
 #==========================================================================================================
 # Delete % from data and convert into numeric
 #==========================================================================================================
+# library(readxl)
+firm_data <-read.csv("3firmExample_data.csv")
+head(firm_data)
+
 df2<-data.frame(lapply(firm_data[,-1], function(x) as.numeric(sub("%", "", x))) )
 df2 = df2/100
+head(df2)
 m.ret = colMeans(df2)     
 vars = var(df2) 
 stdi = sqrt(diag(vars))
 
 rf = 0.005
-
 #==========================================================================================================
 # Import data from csv with numeric data without percentage; 
 #=======================================================================================
 #install.packages("XLConnect", dependencies=TRUE)
 # point to 64-bit java location
-options(java.home="C:\\Program Files\\Java\\jre1.8.0_65")
+#options(java.home="C:\\Program Files\\Java\\jre1.8.0_65")
 library(rJava)
 library(XLConnect)
-install.packages(pkgs="XLConnect")
-install.packages(pkgs="XLConnectJars")
-library(XLConnectJars)
+# install.packages(pkgs="XLConnect")
+# install.packages(pkgs="XLConnectJars")
+# library(XLConnectJars)
 library(XLConnect)
-
 
 install.packages(pkgs="gdata")
 library(gdata)
-
-firm_data2 = read.xls('D:/?Ȭw?j?ǤW?Ҹ???/Portfolio management 2016 Spring/3firmExample_data1.xlsx')
-firm_data1 = read.csv('D:/?Ȭw?j?ǤW?Ҹ???/Portfolio management 2016 Spring/3firmExample_data1.csv',
-                      stringsAsFactors = FALSE)
-firm_data1 = read.table('D:/?Ȭw?j?ǤW?Ҹ???/Portfolio management 2016 Spring/3firmExample_data1.csv', sep=",", header=TRUE)
-firm_data1 = readWorksheetFromFile('D:/?Ȭw?j?ǤW?Ҹ???/Portfolio management 2016 Spring/3firmExample_data2.xlsx', 
+#
+firm_data2.xlsx = read_xlsx('3firmExample_data.xls.xlsx')
+head(firm_data2.xlsx)
+#
+firm_data1.csv = read.csv('3firmExample_data.csv', stringsAsFactors = FALSE)
+head(firm_data1.csv)
+#
+firm_data1 = read.table('3firmExample_data.csv', sep=",", header=TRUE)
+head(firm_data1)
+#
+firm_data1 = readWorksheetFromFile('3firmExample_data.xls.xlsx', 
                                     sheet = 1, startRow = 1, endCol = 4)
+head(firm_data1)
 ############################################
 #Change system time to English so that we can change date format smoothly
 ############################################
 Sys.getlocale(category = "LC_TIME")
 Sys.setlocale("LC_TIME", "Chinese")
 
-date2 = firm_data2[,1]
-date22<- paste(substr(date2,1,3),"-01-",substr(date2,5,6),sep="")
-datetoformat <- as.Date(date11,"%b-%d-%y")
+date2 = firm_data1[,1]
+date22 <- paste(substr(date2,1,3),"-01-",substr(date2,5,6),sep="")
+head(date22)
+dateformat <- as.Date(date22,"%b-%d-%y")
+head(dateformat)
 #convert firm_data2 into time series data
-firm_data2.xts = as.xts(firm_data2[,-1], order.by = datetoformat)
-
-date11<- paste("01-",substr(date1,1,3), "-", substr(date1,5,6),sep="")
-datetoformat <- as.Date(date11,"%d-%b-%y")
-data$date <- as.Date(firm_data1$date, "%b-%y")
+firm_data2.xts = as.xts(firm_data1[,-1], order.by = dateformat)
+head(firm_data2.xts)
 
 #===============================================================================================================
 # Before importing data, we first change date format to yyyy/mm/dd and save data file as 3firmExample_data3.csv
 #===============================================================================================================
-firm_data3 = read.csv('D:/?Ȭw?j?ǤW?Ҹ???/Portfolio management 2016 Spring/3firmExample_data3.csv')
+firm_data3 = read.csv('3firmExample_data3.csv')
+head(firm_data3)
 date3 = as.Date(firm_data3[,1], "%Y/%m/%d")
 #convert firm_data3 into time series data
 firm_data3.xts = as.xts(firm_data3[,-1], order.by = date3)
+head(firm_data3.xts)
+
+
 #=================================
 # Minimum variance portfolio
 #=================================
-Sigma = cov(firm_data1[,2:4])
+Sigma = cov(df2)
 std = sqrt(diag(Sigma))
 ones = rep(1,3)     
 one.vec = matrix(ones, ncol=1)
@@ -83,20 +95,29 @@ mvp.w =a / as.numeric(b)
 mvp.w
 
 #====================================================================================================
-# Or write your own function to find min var for a  specified return mu;
+# Or write your own function to find min var for a specified return mu;
 # Reference: Introduction to R for Quantitative Finance: Chapter 2, p31
 # Solve a diverse range of problems with R, one of the most powerful tools for quantitative finance
 #====================================================================================================
-return = firm_data1[,2:4]
+return = firm_data3.xts
 
 minvariance <- function(return, mu = 0.005) {
   #return <- log(tail(assets, -1) / head(assets, -1))
   Ax <- rbind(2*cov(return), colMeans(return), rep(1, ncol(return)))
   Ax <- cbind(Ax, rbind(t(tail(Ax, 2)), matrix(0, 2, 2)))
   b0 <- c(rep(0, ncol(return)), mu, 1)
-  solve(Ax, b0)
+  sol <- solve(Ax, b0)
+  weights <- sol[1:3]
+  return(weights)
 }
 
+weights <- minvariance(return)
+weights
+# Nordstrom    Starbucks    Microsoft                           
+# 0.875635380  0.116816458  0.007548163  0.399903020 -0.020737417
+
+sum(weights*colMeans(return))
+# [1] 0.005
 #======================================================
 # Create frontier function to plot efficient frontier
 #======================================================
@@ -110,10 +131,10 @@ frontier <- function(return) {
   r <- colMeans(return)
   rbase <- seq(min(r), max(r), length = 100)
   s <- sapply(rbase, function(x) {
-    b0 <- c(rep(0, ncol(return)), x, 1)
-    y <- head(solve(Ax, b0), n)
-    sqrt(y%*%Q%*%y)
-  })
+              b0 <- c(rep(0, ncol(return)), x, 1)
+              y <- head(solve(Ax, b0), n)
+              sqrt(y%*%Q%*%y)}
+              )
   plot(s, rbase, xlab = 'Std', ylab = 'Return')
 }
 
@@ -131,22 +152,17 @@ library(PerformanceAnalytics)
 
 library(fPortfolio)
 
-# convert data to timeseries
-ret.ts<- timeSeries(return, firm_data1[,1])
-chart.CumReturns(ret.ts, legend.loc = 'topleft', main = '')
-
-
-plot(portfolioFrontier(ret.ts))
+chart.CumReturns(return, legend.loc = 'topleft', main = '')
 
 #To mimic what we have implemented in the preceding code, let us render the
 #Frontier plot of short sale constraints
 
-Spec = portfolioSpec()
+spec = portfolioSpec()
 setSolver(Spec) = "solveRshortExact"
 # Display structure of constraints;
-portfolioConstraints(ret.ts, Spec, constraints = "Short")
+portfolioConstraints(as.timeSeries(return), spec = spec, constraints = "Short")
 #setSolver(Spec) = "solveRquadprog"
-Frontier <- portfolioFrontier(as.timeSeries(ret.ts), Spec, constraints = "Short") # "LongOnly"
+Frontier <- portfolioFrontier(as.timeSeries(return), Spec, constraints = "Short") # "LongOnly"
 frontierPlot(Frontier, col = rep('orange', 2), pch = 19)
 monteCarloPoints(Frontier, mcSteps = 1000, cex = 0.25, pch = 19)
 grid()
@@ -154,29 +170,23 @@ grid()
 #=====================================================
 # Tangency portfolio with risk free rate = 0
 #======================================================
-tgPortfolio <- tangencyPortfolio(ret.ts, Spec, constraints = "Short")
-
-
-
+tgPortfolio <- tangencyPortfolio(as.timeSeries(return), spec = spec, constraints = "Short")
 
 #=============================================
 # Global min var portfolio
 #=============================================
 globminSpec <- portfolioSpec()
 # Don't change the constraints to "Short" as there will not be any results!
-globminPortfolio <- minvariancePortfolio(as.timeSeries(ret.ts), spec = globminSpec, constraints = "LongOnly")
+globminPortfolio <- minvariancePortfolio(as.timeSeries(return), spec = globminSpec, constraints = "short")
 print(globminPortfolio)
 
-col = rampPalette(ncol(ret.ts), "purple2green")
+col = rampPalette(ncol(return), "blue2green")
 weights <- 100 * as.vector(getWeights(globminPortfolio))
-names <- as.vector(names(ret.ts))
+names <- as.vector(names(return))
 barplot(height = weights, names.arg = names,
           horiz = TRUE, las = 1, col = col)
 title(main = "Weights of Global Min Variance Portfolio",
         xlab = "Weights %")
-
-
-
 #=================================
 # Tangency portfolio
 #=================================

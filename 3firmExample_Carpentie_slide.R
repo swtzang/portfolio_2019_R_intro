@@ -121,7 +121,7 @@ mu.pz.nord
 sig.pz.nord
 
 # Now, to compute the efficient frontier, consider a sequence of α’s
-# Here we combine two portfolios: GMVP and x.vec(portfolio return is MSFT) 
+# Here we combine two portfolios: GMVP and x.vec (portfolio return is MSFT) 
 a = seq(from = 1, to = -1, by = -0.1)
 n.a = length(a)
 z.mat = matrix(0, n.a, 3)
@@ -142,13 +142,78 @@ plot(sqrt(sig2.z), mu.z, type ="b",
      ylab = expression(mu[p]), 
      xlab = expression(sigma[p]))
 
+points(sig.gmin, mu.gmin, pch = 21, col = "red")
 text(sig.gmin, mu.gmin, 
      labels ="Global min", 
      pos =4)
 
+points(sqrt(sig2.px), mu.px, pch = 21, col = "red")
+text(sqrt(sig2.px), mu.px, pos = 2, 
+     labels = "MVP with given return equal to MSFT")
+
 sd.vec <- sqrt(diag(sigma.mat))
-text(sd.vec, mu.vec, labels = asset.names, pos =4, cex = 0.88, col = "green")
+points(sd.vec, mu.vec, pch = 19)
+
+text(sd.vec, mu.vec, labels = asset.names, pos =4, cex = 0.88)
+
+# Tangency portfolio
+
+rf = 0.005
+sigma.inv.mat = solve(sigma.mat)
+one.vec = rep(1, 3)
+mu.minus.rf = mu.vec - rf*one.vec
+top.mat = sigma.inv.mat %*% mu.minus.rf
+bot.val = as.numeric(t(one.vec) %*% top.mat)
+t.vec = top.mat[ ,1]/bot.val
+t.vec
+# > t.vec
+# MSFT       NORD       SBUX 
+# 1.0268230 -0.3262511  0.2994281 
 
 
+# Expected return and standard deviation are here
+mu.t = as.numeric(crossprod(t.vec, mu.vec))
+mu.t
+# [1] 0.05188967
+
+sig2.t = as.numeric(t(t.vec) %*% sigma.mat %*% t.vec)
+sig.t = sqrt(sig2.t)
+sig.t
+# [1] 0.1115816
+
+# Sharpe ratio
+(mu.t - rf)/sig.t
+# [1] 0.4202277
+
+
+
+# =====================
+# If our target is a portfolio with standard deviation 2%, use
+x.t.02 = 0.02 / sig.t
+x.t.02
+# [1] 0.1792411
+
+1 - x.t.02
+# [1] 0.8207589
+# i.e. 82% on the risk-free asset, and 18% on the tangency 
+# portfolio. Expected return and standard deviation are here
+mu.t.02 = x.t.02 *mu.t + (1 - x.t.02)*rf
+sig.t.02 = x.t.02 * sig.t
+mu.t.02
+# [1] 0.01340
+sig.t.02
+# [1] 0.02
+
+
+# If we want a 7% expected return on the portfolio based on CAL: 
+x.t.07 = (0.07 - rf)/(mu.t - rf)
+x.t.07
+# [1] 1.386233
+1 - x.t.07
+# [1] -0.3862329
+# which involves borrowing at the Treasury Bill (leveraging)
+sig.t.07 = x.t.07*sig.t
+sig.t.07
+# [1] 0.1546781
 
 
