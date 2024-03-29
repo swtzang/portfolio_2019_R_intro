@@ -16,11 +16,14 @@
 #==========================================================================================================
 # Delete % from data and convert into numeric
 #==========================================================================================================
-# library(readxl)
+library(readxl)
+library(xts)
+library(quadprog)
+#
 firm_data <-read.csv("3firmExample_data.csv")
 head(firm_data)
 
-df2<-data.frame(lapply(firm_data[,-1], function(x) as.numeric(sub("%", "", x))) )
+df2 <- data.frame(lapply(firm_data[,-1], function(x) as.numeric(sub("%", "", x))) )
 df2 = df2/100
 head(df2)
 m.ret = colMeans(df2)     
@@ -41,7 +44,7 @@ library(XLConnect)
 # library(XLConnectJars)
 library(XLConnect)
 
-install.packages(pkgs="gdata")
+# install.packages(pkgs="gdata")
 library(gdata)
 #
 firm_data2.xlsx = read_xlsx('3firmExample_data.xls.xlsx')
@@ -71,11 +74,14 @@ head(dateformat)
 firm_data2.xts = as.xts(firm_data1[,-1], order.by = dateformat)
 head(firm_data2.xts)
 
-#===============================================================================================================
-# Before importing data, we first change date format to yyyy/mm/dd and save data file as 3firmExample_data3.csv
-#===============================================================================================================
+#======================================================================
+# Before importing data, we first change date format to yyyy/mm/dd and 
+# save data file as 3firmExample_data3.csv
+#======================================================================
 firm_data3 = read.csv('3firmExample_data3.csv')
 head(firm_data3)
+str(firm_data3)
+# Convert chr date into time 
 date3 = as.Date(firm_data3[,1], "%Y/%m/%d")
 #convert firm_data3 into time series data
 firm_data3.xts = as.xts(firm_data3[,-1], order.by = date3)
@@ -85,6 +91,8 @@ head(firm_data3.xts)
 #=================================
 # Minimum variance portfolio
 #=================================
+library(matlib)
+#
 Sigma = cov(df2)
 std = sqrt(diag(Sigma))
 ones = rep(1,3)     
@@ -100,6 +108,7 @@ mvp.w
 # Solve a diverse range of problems with R, one of the most powerful tools for quantitative finance
 #====================================================================================================
 return = firm_data3.xts
+mu = 0.005
 
 minvariance <- function(return, mu = 0.005) {
   #return <- log(tail(assets, -1) / head(assets, -1))
