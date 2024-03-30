@@ -33,10 +33,11 @@ colnames(firm3)<-c("AMZN", "GOOG", "MSFT")
 head(firm3)
 #------------------------------------------
 # Import data from .txt file
-etf4<-read.table("ETF4_2010_2018_d1_english.txt", header = T, sep = ',')
+etf4 <- read.table("ETF4_2010_2018_d1_english.txt", header = T, sep = ',')
 str(etf4)
+
 # convert CO_ID into character;
-etf4<-read.table("ETF4_2010_2018_d1_english.txt", header = T, sep = ',',
+etf4 <- read.table("ETF4_2010_2018_d1_english.txt", header = T, sep = ',',
                  colClasses = c("CO_ID" = "character"))
 str(etf4)
 head(etf4)
@@ -48,15 +49,15 @@ etf4_csv<-read_csv("etf4.csv")
 etf4_csv
 #--------------------------
 # clean data
-etf4.c<-etf4_csv[, c(-1,-3,-6)]
+etf4.c <- etf4_csv[, c(-1,-3,-6)]
 etf4.c
-colnames(etf4.c)<-c("id", "date", "price")
+colnames(etf4.c) <- c("id", "date", "price")
 etf4.c
 # use pipe operator 
 library(magrittr)
 #install.packages("dplyr")
 library(dplyr)
-etf4.c<-etf4_csv%>%select(c(2,4,5))%>%rename("id" = "CO_ID", "date"= "Date", "price" = "Close")
+etf4.c <- etf4_csv%>%select(c(2,4,5))%>%rename("id" = "CO_ID", "date"= "Date", "price" = "Close")
 etf4.c
 #-----------------------------------------------------------------                
 # use dcast to reorder dataframe by date;
@@ -74,7 +75,7 @@ str(etf4.reorder)
 # convert to xts
 #install.packages("xts")
 library(xts)
-etf4.xts<-xts(etf4.reorder[,-1], order.by = etf4.reorder$date)
+etf4.xts <- xts(etf4.reorder[,-1], order.by = etf4.reorder$date)
 head(etf4.xts)
 tail(etf4.xts)
 str(etf4.xts)
@@ -84,14 +85,14 @@ str(etf4.xts)
 # Last obs. carried forward
 #etf4.xts$`0050`['2018-12-27']<-NA 
 #tail(etf4.xts)
-etf4.xts<-na.locf(etf4.xts)                
+etf4.xts <- na.locf(etf4.xts)                
 tail(etf4.xts)
 # Next obs. carried backward
-etf4.xts.fill<-na.locf(etf4.xts, fromLast = TRUE) 
+etf4.xts.fill <- na.locf(etf4.xts, fromLast = TRUE) 
 head(etf4.xts.fill)
 #-------------------------------------------------
 # delete NA values
-etf4.xts<-na.omit(etf4.xts)
+etf4.xts <- na.omit(etf4.xts)
 head(etf4.xts)
 # or complete cases
 #install.packages("tidyr")

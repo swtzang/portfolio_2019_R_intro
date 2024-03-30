@@ -142,7 +142,7 @@ plot(sqrt(sig2.z), mu.z, type ="b",
      ylab = expression(mu[p]), 
      xlab = expression(sigma[p]))
 
-points(sig.gmin, mu.gmin, pch = 21, col = "red")
+points(sig.gmin, mu.gmin, pch = 21, col = "darkred")
 text(sig.gmin, mu.gmin, 
      labels ="Global min", 
      pos =4)

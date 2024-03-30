@@ -49,12 +49,19 @@ top.mat <- Sigma.inv.mat%*%one.vec
 bot.val <- as.numeric(t(one.vec)%*%top.mat)
 mvp.w <-  top.mat / bot.val
 mvp.w
+# [,1]
+# Nordstrom 0.3635998
+# Starbucks 0.1936537
+# Microsoft 0.4427465
 mu.vec <- colMeans(firm_data1[, 2:4])
 mvp.ret <- as.numeric(crossprod(mvp.w, mu.vec))
 mvp.ret
+# [1] 0.02498369
 mvp.sig2 <- as.numeric(t(mvp.w)%*%Sigma%*%mvp.w)
 mvp.sig <- sqrt(mvp.sig2)
 mvp.sig
+# [1] 0.073302
+
 #===========================================================
 # Find the optimal mvp for a given return r0
 # Ref: Aurthur Charpentier, Portfolio Optimization, p14, 2017
