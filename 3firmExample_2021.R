@@ -112,7 +112,28 @@ minvariance <- function(return, r0) {
   list(weight = w.r0, rt = mu.r0, sd = sig.r0)
 }
 
-minvariance(return, 0.005)
+minvariance(return, r0)
+# ******************************************************************
+# Use quadprog library to compute mvp for a given portfolio return 
+# ******************************************************************
+library(quadprog)
+
+Sigma <-  cov(firm_data1[, 2:4])
+mu <- apply(firm_data1[,2:4], 2, mean)
+Amat <- cbind(rep(1,3), mu) 
+muP <- 0.06/12
+
+bvec = c(1,muP)  # constraint vector
+result = solve.QP(Dmat=2*Sigma, dvec=rep(0,3), Amat = Amat, bvec = bvec, meq = 2)
+sdP = sqrt(result$value)
+sdP
+# > sdP
+# [1] 0.09679334
+weights <- result$solution
+weights
+# > weights
+# [1] 0.875635380 0.116816458 0.007548163
+
 #======================================================
 # Create frontier function to plot efficient frontier
 #======================================================
@@ -273,26 +294,30 @@ for (i in 1:length(muP))  # find the optimal portfolios for each target expected
 #===================================================
 #postscript("3firmExample.ps",width=6,height=5)  
 pdf("3firmExample.pdf",width=6,height=5)  
+#
 plot(sdP,muP,type="l",xlim=c(0,0.25),ylim=c(0,0.08),lty=1)  #  plot 
 # the efficient frontier (and inefficient frontier)
 mufree = 0.01/12 # input value of risk-free interest rate
-points(0,mufree,cex=3, pch="*")  # show risk-free asset
+points(0, mufree, cex = 1, pch = 19, col = "darkblue")  # show risk-free asset
 sharpe =( muP-mufree)/sdP # compute Sharpe ratios
 ind = (sharpe == max(sharpe)) # Find maximum Sharpe ratio
 options(digits=3)
 weights[ind,] # Find tangency portfolio# show line of optimal portfolios
 lines(c(0,2),mufree+c(0,2)*(muP[ind]-mufree)/sdP[ind],lwd=2,lty=3)
 # show line of optimal portfolios
-points(sdP[ind],muP[ind],cex=1,pch=19, col="red") # show tangency portfolio
+points(sdP[ind],muP[ind],cex=1, pch=19, col="darkred") # show tangency portfolio
 ind2 = (sdP == min(sdP)) # find the minimum variance portfolio
-points(sdP[ind2],muP[ind2],cex=2,pch="+", col="blue") # show minimum variance portfolio
+points(sdP[ind2],muP[ind2],cex=1, pch= 19, col="lightblue") # show minimum variance portfolio
 ind3 = (muP > muP[ind2])
 lines(sdP[ind3],muP[ind3],type="l",xlim=c(0,.25),
       ylim=c(0,.08),lwd=1)  #  plot the efficient frontier
-points(c(std[1],std[2], std[3]), c(mu[1], mu[2], mu[3]), cex=1, pch="o", col="red") 
-text(std[1],mu[1],"Nordstrom",cex=1, pos=4)
-text(std[2],mu[2],"Starbucks",cex=1, pos=4)
-text(std[3],mu[3],"Microsoft",cex=1, pos=4)
+points(c(diag(Sigma)[1], diag(Sigma)[2], diag(Sigma)[3]), 
+       c(mu.vec[1], mu.vec[2], mu.vec[3]), 
+       cex=1, pch="o", col="red") 
+
+text(diag(Sigma)[1], mu.vec[1], "Nordstrom", cex=1, pos=4)
+text(diag(Sigma)[2], mu.vec[2], "Starbucks", cex=1, pos=4)
+text(diag(Sigma)[3], mu.vec[3], "Microsoft", cex=1, pos=4)
 graphics.off()
 
 #===================================
