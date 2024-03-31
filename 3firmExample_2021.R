@@ -153,8 +153,8 @@ library(fPortfolio)
 return = firm_data1[,2:4]
 # convert data to timeseries
 ret.ts<- timeSeries(return, date1)
+class(ret.ts)
 chart.CumReturns(ret.ts, legend.loc = 'topleft', main = '')
-
 
 plot(portfolioFrontier(ret.ts))
 
@@ -164,7 +164,7 @@ Spec = portfolioSpec()
 setSolver(Spec) = "solveRshortExact"
 setTargetReturn(Spec) = mean(colMeans(ret.ts))## or set your own target return
 Spec
-#DIFFERENT COVARIANCE ESTIMATORS
+# DIFFERENT COVARIANCE ESTIMATORS
 #1. MCd ESTIMATOR 
 setEstimator(Spec)="covMcdEstimator"
 #2. OGK estimator
@@ -190,7 +190,7 @@ grid()
 weightsPlot(Frontier)
 
 #EQUAL WEIGTH PORTFOLIO
-Data<-ret.ts
+Data <- ret.ts
 nAssets = getNAssets(portfolioData(Data))
 Weights <- rep(1/nAssets, times = nAssets)
 covRisk(Data, Weights)
@@ -203,7 +203,7 @@ cvarRisk(Data, Weights, alpha = 0.05)### CVaR for equal weight portfolio
 # But the answer seems confusing because it remains the same 
 # when we change risk free rate to other values!
 # ==========================================================
-setRiskFreeRate(Spec)<-0.01/12
+setRiskFreeRate(Spec) <- 0.01/12
 tgPortfolio <- tangencyPortfolio(ret.ts, Spec, constraints = "Short")
 tgPortfolio
 
@@ -252,12 +252,12 @@ title(main = "Weights of Global Min Variance Portfolio",
 library(quadprog)
 
 mu = apply(firm_data1[,2:4], 2, mean)
-Amat = cbind(rep(1,3),mu)  # set the constraints matrix
+Amat = cbind(rep(1,3), mu)  # set the constraints matrix
+muP = seq(.01, .08, length=300)  # set of 300 possible given returns 
 
-muP = seq(.01,.08,length=300)  # set of 300 possible given returns 
 # for the expect portfolio return
 sdP = muP # set up storage for standard deviations of portfolio returns
-weights = matrix(0,nrow=300,ncol=3) # storage for portfolio weights
+weights = matrix(0, nrow=300, ncol=3) # storage for portfolio weights
 
 i=1
 for (i in 1:length(muP))  # find the optimal portfolios for each target expected return
