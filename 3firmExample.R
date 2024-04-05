@@ -131,13 +131,15 @@ chart.CumReturns(ret.ts, legend.loc = 'topleft', main = '')
 
 plot(portfolioFrontier(ret.ts))
 
-1#To mimic what we have implemented in the preceding code, let us render the
+#To mimic what we have implemented in the preceding code, let us render the
 #frontier plot of short sale constraints
 Spec = portfolioSpec()
 setSolver(Spec) = "solveRshortExact"
 setTargetReturn(Spec) = mean(colMeans(ret.ts))## or set your own target return
 Spec
 #DIFFERENT COVARIANCE ESTIMATORS
+#0. Traditional estimator: default
+setEstimator(Spec)="covEstimator"
 #1. MCd ESTIMATOR 
 setEstimator(Spec)="covMcdEstimator"
 #2. OGK estimator
